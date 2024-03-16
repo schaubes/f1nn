@@ -19,9 +19,9 @@ class NeuralNetwork(nn.Module):
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(2, 20),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Linear(20, 20),
-            nn.ReLU(),
+            nn.LeakyReLU(0.1),
             nn.Linear(20, 1)
         )
 
@@ -85,9 +85,9 @@ def train(dataloader, model, loss_fn, optimizer, epochs=10):
             optimizer.step()
             optimizer.zero_grad()
 
-            if batch % 10 == 0:
-                loss, current = loss.item(), (batch + 1) * len(X)
-                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            # if batch % 10 == 0:
+            #     loss, current = loss.item(), (batch + 1) * len(X)
+            #     print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
         
         print('')
 

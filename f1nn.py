@@ -3,8 +3,8 @@ import pandas as pd
 import data as f1
 
 TRAIN_TEST_SPLIT = 0.9
-BATCH_SIZE = 8
-EPOCHS = 20
+BATCH_SIZE = 40
+EPOCHS = 1000
 
 
 # MAIN
