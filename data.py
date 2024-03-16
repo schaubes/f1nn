@@ -47,3 +47,10 @@ def get_sessions(year):
         sessions.append(session)
 
     return sessions
+
+
+def get_filtered_session_results(session_results):
+    session_data = pd.concat(session_results, ignore_index=True)
+    session_data.dropna(inplace=True)
+    
+    return session_data

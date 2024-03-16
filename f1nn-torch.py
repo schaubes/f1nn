@@ -40,12 +40,8 @@ print()
 #print(session.items())
 #print(len(sessions), sessions)
 
-session_data = pd.concat(sessions, ignore_index=True)
-#session_data = sessions[0]
+session_data = f1.get_filtered_session_results(sessions)
 
-session_data.dropna(inplace=True)
-
-print(session_data.head())
 
 # INPUT
 

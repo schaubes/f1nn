@@ -25,10 +25,7 @@ print()
 #print(session['results'])
 #print(session.items())
 
-session_data = pd.concat(sessions, ignore_index=True)
-session_data.dropna(inplace=True)
-
-print(session_data.head())
+session_data = f1.get_filtered_session_results(sessions)
 
 
 # INPUT
