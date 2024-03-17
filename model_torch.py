@@ -12,17 +12,17 @@ device = (
 )
 print(f"Using {device} device")
 
-
+# [ 1 grid_position, 1 finished, 30 [driver 1-to-k] ]
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(2, 20),
+            nn.Linear(32, 32),
             nn.LeakyReLU(0.1),
-            nn.Linear(20, 20),
-            nn.LeakyReLU(0.1),
-            nn.Linear(20, 1)
+            nn.Linear(32, 16),
+            nn.LeakyReLU(0.5),
+            nn.Linear(16, 1)
         )
 
     def forward(self, x):
@@ -49,8 +49,8 @@ def get_data(features, targets, train_test_split = 0.9, batch_size=8):
 
     train_test_split_index = int(len(features) * train_test_split)
 
-    train_dataset = F1Dataset(features.iloc[:train_test_split_index].values, targets.iloc[:train_test_split_index].values)
-    test_dataset = F1Dataset(features.iloc[train_test_split_index:].values, targets.iloc[train_test_split_index:].values)
+    train_dataset = F1Dataset(features[:train_test_split_index], targets[:train_test_split_index])
+    test_dataset = F1Dataset(features[train_test_split_index:], targets[train_test_split_index:])
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -70,8 +70,9 @@ def get_model():
 
 def train(dataloader, model, loss_fn, optimizer, epochs=10):
     for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        size = len(dataloader.dataset)
+        if t % 100 == 99:
+            print(f"\nEpoch {t+1}\n-------------------------------")
+            size = len(dataloader.dataset)
         model.train()
         for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
@@ -88,11 +89,11 @@ def train(dataloader, model, loss_fn, optimizer, epochs=10):
             # if batch % 10 == 0:
             #     loss, current = loss.item(), (batch + 1) * len(X)
             #     print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-        
-        print('')
 
 
 def test(dataloader, model, loss_fn):
+    if len(dataloader) == 0:
+        return
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
