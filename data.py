@@ -1,5 +1,6 @@
 import fastf1 as f1
 import pandas as pd
+import datetime
 
 
 def get_session(year, round, session_type):
@@ -42,9 +43,35 @@ def get_sessions(year):
     num_sessions = len(f1.get_event_schedule(year, include_testing=False).values)
     
     sessions = []
+
     for i in range(0, num_sessions):
         session = get_session(year, i+1, 'R')
         sessions.append(session)
+
+    return sessions
+
+
+def get_sessions_since(year):
+    now = datetime.datetime.now() - datetime.timedelta(days=3)
+    delta = now.year - year
+
+    sessions = []
+
+    for i in range(0, delta + 1):
+        current_year = year + i
+
+        if current_year == now.year:
+            session_schedule = f1.get_event_schedule(current_year, include_testing=False)
+            session_schedule = session_schedule[session_schedule['EventDate'] <= now]
+
+            for j in range(0, len(session_schedule)):
+                session = get_session(current_year, j + 1, 'R')
+                sessions.append(session)
+
+        else:
+            sessions.extend(get_sessions(current_year))
+
+    print(len(sessions))
 
     return sessions
 

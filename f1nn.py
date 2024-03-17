@@ -27,7 +27,7 @@ else:
 
 
 print()
-sessions = f1.get_sessions(2023)
+sessions = f1.get_sessions_since(2023)
 session_data = f1.get_filtered_session_results(sessions)
 print()
 
@@ -51,7 +51,7 @@ preprocessed_targets = []
 abbreviations = session_data['Abbreviation'].unique()
 abbreviations.sort()
 
-print(abbreviations, type(abbreviations), abbreviations.dtype)
+print(abbreviations, len(abbreviations))
 print()
 
 for index, row in session_data.iterrows():
@@ -130,7 +130,7 @@ class ResultPrediction:
         self.pos = pos
 
 #grid_positions = sessions[0]['Abbreviation'].unique()
-grid_positions = ['VER', 'LEC', 'PER', 'HAM', 'RUS', 'SAI', 'PIA', 'NOR', 'ALO', 'STR', 'BOT', 'RIC', 'TSU', 'MAG', 'HUL', 'ZHO', 'ALB', 'SAR', 'GAS', 'OCO']
+grid_positions = ['VER', 'LEC', 'PER', 'RUS', 'SAI', 'HAM', 'NOR', 'PIA', 'ALO', 'STR', 'BOT', 'RIC', 'TSU', 'GAS', 'OCO', 'MAG', 'HUL', 'ZHO', 'ALB', 'SAR']
 
 if len(grid_positions) != 20:
     raise ValueError("Grid positions must be 20")
