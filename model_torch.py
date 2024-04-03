@@ -12,6 +12,7 @@ device = (
 )
 print(f"Using {device} device")
 
+
 # [ 1 grid_position, 1 finished, 30 [driver 1-to-k] ]
 class NeuralNetwork(nn.Module):
     def __init__(self, feature_length, target_length):

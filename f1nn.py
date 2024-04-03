@@ -2,7 +2,7 @@ import numpy as np
 import data as f1
 
 TRAIN_TEST_SPLIT = 1.0
-BATCH_SIZE = 1
+BATCH_SIZE = 20
 EPOCHS = 2000
 
 
@@ -50,7 +50,7 @@ preprocessed_targets = []
 abbreviations = session_data['Abbreviation'].unique()
 abbreviations.sort()
 
-print(abbreviations, len(abbreviations))
+print('Unique drivers', len(abbreviations), abbreviations)
 print()
 
 # Preprocess features
@@ -186,9 +186,27 @@ for i in range(0, len(pred_outputs)):
     pred_results[i].setPrediction(pred_outputs[i, 0].item())
     pred_results[i].setFinished(pred_outputs[i, 1].item())
 
+# Print predictions by position
+
+print("Race predictions\n")
+
 pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
 
 for i in range(0, len(pred_results_sorted)):
     pred_result = pred_results_sorted[i]
     pred_result.setPosition(i+1)
     print(f"{pred_result.abbr} {pred_result.start_pos} -> {pred_result.pos} ({pred_result.pred}, {pred_result.finished})")
+
+print()
+
+# Print predictions by finished
+
+print("Finishing predictions\n")
+
+pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
+
+for i in range(0, len(pred_results_finished_sorted)):
+    pred_result = pred_results_finished_sorted[i]
+    print(f"{pred_result.abbr} {pred_result.finished} ({pred_result.pos} -> {pred_result.pred})")
+
+print()
