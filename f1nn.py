@@ -1,9 +1,8 @@
 import numpy as np
-import pandas as pd
 import data as f1
 
 TRAIN_TEST_SPLIT = 1.0
-BATCH_SIZE = 20
+BATCH_SIZE = 1
 EPOCHS = 2000
 
 
@@ -38,7 +37,7 @@ numeric_feature_names = ['GridPosition']
 binary_feature_names = ['Finished']
 categorical_feature_names = ['Abbreviation']
 
-target_names = ['Position']
+target_names = ['Position', 'Finished']
 
 
 # PREPROCESSING
@@ -54,11 +53,13 @@ abbreviations.sort()
 print(abbreviations, len(abbreviations))
 print()
 
+# Preprocess features
+
 for index, row in session_data.iterrows():
     preprocessed_row = np.zeros(32, dtype=np.float32)
 
     preprocessed_row[0] = row['GridPosition']
-    preprocessed_row[1] = row['Finished']
+    #preprocessed_row[1] = row['Finished']
 
     if (row['Abbreviation'] in abbreviations):
         abbr_index = np.where(abbreviations == row['Abbreviation'])[0][0]
@@ -66,20 +67,39 @@ for index, row in session_data.iterrows():
 
     preprocessed_features.append(preprocessed_row.tolist())
 
-print(preprocessed_features[0:5])
+print(preprocessed_features[0])
 print()
 
-#features = session_data[numeric_feature_names + binary_feature_names]
-targets = session_data[target_names]
+# Preprocess targets
 
-train_data, test_data = model.get_data(preprocessed_features, targets.values, train_test_split=TRAIN_TEST_SPLIT, batch_size=BATCH_SIZE)
+for index, row in session_data.iterrows():
+    preprocessed_row = np.zeros(2, dtype=np.float32)
+
+    preprocessed_row[0] = row['Position']
+    preprocessed_row[1] = row['Finished']
+
+    preprocessed_targets.append(preprocessed_row.tolist())
+
+print(preprocessed_targets[0])
+print()
+
+
+# Split data
+
+train_data, test_data = model.get_data(preprocessed_features, preprocessed_targets, train_test_split=TRAIN_TEST_SPLIT, batch_size=BATCH_SIZE)
 
 
 # MODEL
 
 print('\n\n-- MODEL --\n')
 
-nn, loss_fn, optimizer = model.get_model()
+feature_length = len(preprocessed_features[0])
+target_length = len(preprocessed_targets[0])
+
+nn, loss_fn, optimizer = model.get_model(feature_length, target_length)
+
+nn.print()
+print()
 
 print('Model created')
 
@@ -116,17 +136,20 @@ print('Testing complete')
 print('\n\n-- PREDICTION --\n')
 
 class ResultPrediction:
-    def __init__(self, start_pos, finished, abbr, pred=0):
+    def __init__(self, start_pos, abbr, pred=0):
         self.start_pos = start_pos
-        self.finished = finished
         self.abbr = abbr
         self.pred = pred
+        self.finished = 0
         self.pos = 0
     
-    def predict(self, pred):
+    def setPrediction(self, pred):
         self.pred = pred
 
-    def position(self, pos):
+    def setFinished(self, finished):
+        self.finished = finished
+
+    def setPosition(self, pos):
         self.pos = pos
 
 #grid_positions = sessions[0]['Abbreviation'].unique()
@@ -148,52 +171,24 @@ for i in range(0, len(grid_positions)):
     start_pos = i + 1
     abbr = grid_positions[i]
     abbr_index = np.where(abbreviations == abbr)[0][0]
-    finished = 1
+    # finished = 1
 
     preprocessed_row[0] = start_pos
-    preprocessed_row[1] = finished
+    # preprocessed_row[1] = finished
     preprocessed_row[2 + abbr_index] = 1
 
     pred_inputs.append(preprocessed_row.tolist())
-    pred_results.append(ResultPrediction(start_pos, finished, abbr))
+    pred_results.append(ResultPrediction(start_pos, abbr))
 
 pred_outputs = model.predict(nn, pred_inputs)
 
 for i in range(0, len(pred_outputs)):
-    pred_results[i].predict(pred_outputs[i].item())
+    pred_results[i].setPrediction(pred_outputs[i, 0].item())
+    pred_results[i].setFinished(pred_outputs[i, 1].item())
 
 pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
 
 for i in range(0, len(pred_results_sorted)):
     pred_result = pred_results_sorted[i]
-    pred_result.position(i+1)
-    print(f"{pred_result.abbr} {pred_result.start_pos} -> {pred_result.pos} ({pred_result.pred})")
-
-
-
-#pred_input = [[1, 1], [2, 1]]
-
-# pred_input_starting = 20
-# pred_input_finishing = 20
-
-# pred_input = []
-# for i in range(0, pred_input_starting):
-#     pred_input_is_finishing = 1 if i < pred_input_finishing else 0
-#     pred_input.append([i+1, pred_input_is_finishing])
-
-# print(f"Input: {pred_input}")
-# pred_output = model.predict(nn, pred_input)
-
-# pred_results = []
-
-# for i in range(0, len(pred_output)):
-#     inp = pred_input[i]
-#     pred = pred_output[i]
-#     pred_results.append(ResultPrediction(inp[0], inp[1], pred.item()))
-
-# pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
-
-# for i in range(0, len(pred_results_sorted)):
-#     pred_result = pred_results_sorted[i]
-#     pred_result.position(i+1)
-#     print(f"{pred_result.start_pos} -> {pred_result.pos} ({pred_result.pred})")
+    pred_result.setPosition(i+1)
+    print(f"{pred_result.abbr} {pred_result.start_pos} -> {pred_result.pos} ({pred_result.pred}, {pred_result.finished})")
