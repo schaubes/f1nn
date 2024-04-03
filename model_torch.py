@@ -88,12 +88,12 @@ def train(dataloader, model, loss_fn, optimizer, epochs = 8):
 
         model.train()
 
-        for batch, (X, y) in enumerate(dataloader):
-            X, y = X.to(device), y.to(device)
+        for batch, (X, Y) in enumerate(dataloader):
+            X, Y = X.to(device), Y.to(device)
 
             # Compute prediction error
             pred = model(X)
-            loss = loss_fn(pred, y)
+            loss = loss_fn(pred, Y)
 
             # Backpropagation
             loss.backward()
@@ -114,11 +114,11 @@ def test(dataloader, model, loss_fn):
     model.eval()
     test_loss, correct = 0, 0
     with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
+        for X, Y in dataloader:
+            X, Y = X.to(device), Y.to(device)
             pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+            test_loss += loss_fn(pred, Y).item()
+            correct += (pred.argmax(1) == Y).type(torch.float).sum().item()
     test_loss /= num_batches
     correct /= size
     print(f"Test accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f}\n")

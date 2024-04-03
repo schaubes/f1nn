@@ -218,7 +218,7 @@ pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
 for i in range(0, len(pred_results_sorted)):
     pred_result = pred_results_sorted[i]
     pred_result.setPosition(i+1)
-    print(f"{pred_result.abbr} {pred_result.start_pos} -> {pred_result.pos} ({pred_result.pred}, {pred_result.finished})")
+    print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f}, {pred_result.finished:>0.7f})")
 
 print()
 
@@ -230,7 +230,7 @@ pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
 
 for i in range(0, len(pred_results_finished_sorted)):
     pred_result = pred_results_finished_sorted[i]
-    print(f"{pred_result.abbr} {pred_result.finished} ({pred_result.pos} -> {pred_result.pred})")
+    print(f"{pred_result.abbr} {pred_result.finished:>0.7f} ({pred_result.pos:>2d} -> {pred_result.pred:>0.7f})")
 
 print()
 
@@ -245,4 +245,4 @@ for abbr, ratio in driver_data_sorted.items():
     if pred_result is None:
         continue
 
-    print(f"{pred_result.abbr} {ratio}")
+    print(f"{pred_result.abbr} {ratio:>0.2f}")
