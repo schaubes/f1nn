@@ -233,3 +233,16 @@ for i in range(0, len(pred_results_finished_sorted)):
     print(f"{pred_result.abbr} {pred_result.finished} ({pred_result.pos} -> {pred_result.pred})")
 
 print()
+
+# Print finishing analysis
+
+print('Finishing analysis\n')
+
+driver_data_sorted = {k: v for k, v in sorted(driver_data.items(), key=lambda item: item[1])}
+
+for abbr, ratio in driver_data_sorted.items():
+    pred_result = next((x for x in pred_results if x.abbr == abbr), None)
+    if pred_result is None:
+        continue
+
+    print(f"{pred_result.abbr} {ratio}")
