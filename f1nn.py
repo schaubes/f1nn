@@ -50,16 +50,35 @@ preprocessed_targets = []
 abbreviations = session_data['Abbreviation'].unique()
 abbreviations.sort()
 
-print('Unique drivers', len(abbreviations), abbreviations)
+print('Unique drivers:', len(abbreviations), abbreviations)
+print()
+
+# Analyze drivers
+
+print('Driver data\n')
+
+driver_data = {}
+
+for abbr in abbreviations:
+    driver_sessions = session_data[session_data['Abbreviation'] == abbr]
+    driver_finished = driver_sessions['Finished'].sum()
+    driver_ratio = driver_finished / len(driver_sessions)
+
+    driver_data[abbr] = driver_ratio
+
+print(driver_data)
 print()
 
 # Preprocess features
+
+print('Feature example\n')
 
 for index, row in session_data.iterrows():
     preprocessed_row = np.zeros(32, dtype=np.float32)
 
     preprocessed_row[0] = row['GridPosition']
     #preprocessed_row[1] = row['Finished']
+    preprocessed_row[1] = driver_data[row['Abbreviation']]
 
     if (row['Abbreviation'] in abbreviations):
         abbr_index = np.where(abbreviations == row['Abbreviation'])[0][0]
@@ -71,6 +90,8 @@ print(preprocessed_features[0])
 print()
 
 # Preprocess targets
+
+print('Target example\n')
 
 for index, row in session_data.iterrows():
     preprocessed_row = np.zeros(2, dtype=np.float32)
@@ -136,9 +157,10 @@ print('Testing complete')
 print('\n\n-- PREDICTION --\n')
 
 class ResultPrediction:
-    def __init__(self, start_pos, abbr, pred=0):
+    def __init__(self, start_pos, abbr, finishing_ratio, pred=0):
         self.start_pos = start_pos
         self.abbr = abbr
+        self.finishing_ratio = finishing_ratio
         self.pred = pred
         self.finished = 0
         self.pos = 0
@@ -175,10 +197,11 @@ for i in range(0, len(grid_positions)):
 
     preprocessed_row[0] = start_pos
     # preprocessed_row[1] = finished
+    preprocessed_row[1] = driver_data[abbr]
     preprocessed_row[2 + abbr_index] = 1
 
     pred_inputs.append(preprocessed_row.tolist())
-    pred_results.append(ResultPrediction(start_pos, abbr))
+    pred_results.append(ResultPrediction(start_pos, abbr, driver_data[abbr]))
 
 pred_outputs = model.predict(nn, pred_inputs)
 
@@ -188,7 +211,7 @@ for i in range(0, len(pred_outputs)):
 
 # Print predictions by position
 
-print("Race predictions\n")
+print('Race predictions\n')
 
 pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
 
@@ -201,7 +224,7 @@ print()
 
 # Print predictions by finished
 
-print("Finishing predictions\n")
+print('Finishing predictions\n')
 
 pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
 
