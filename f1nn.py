@@ -175,7 +175,28 @@ class ResultPrediction:
         self.pos = pos
 
 #grid_positions = sessions[0]['Abbreviation'].unique()
-grid_positions = ['VER', 'LEC', 'PER', 'RUS', 'SAI', 'HAM', 'NOR', 'PIA', 'ALO', 'STR', 'BOT', 'RIC', 'TSU', 'GAS', 'OCO', 'MAG', 'HUL', 'ZHO', 'ALB', 'SAR']
+grid_positions = [
+    'VER',
+    'PER',
+    'NOR',
+    'SAI',
+    'ALO',
+    'PIA',
+    'HAM',
+    'LEC',
+    'RUS',
+    'TSU',
+    'RIC',
+    'HUL',
+    'BOT',
+    'ALB',
+    'OCO',
+    'STR',
+    'GAS',
+    'MAG',
+    'SAR',
+    'ZHO',
+]
 
 if len(grid_positions) != 20:
     raise ValueError("Grid positions must be 20")
