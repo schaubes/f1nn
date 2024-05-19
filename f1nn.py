@@ -175,28 +175,8 @@ class ResultPrediction:
         self.pos = pos
 
 #grid_positions = sessions[0]['Abbreviation'].unique()
-grid_positions = [
-    'VER',
-    'PER',
-    'NOR',
-    'SAI',
-    'ALO',
-    'PIA',
-    'HAM',
-    'LEC',
-    'RUS',
-    'TSU',
-    'RIC',
-    'HUL',
-    'BOT',
-    'ALB',
-    'OCO',
-    'STR',
-    'GAS',
-    'MAG',
-    'SAR',
-    'ZHO',
-]
+grid_file = open('grid.txt', 'r')
+grid_positions = [line[:-1] if line[-1] == '\n' else line for line in grid_file.readlines()]
 
 if len(grid_positions) != 20:
     raise ValueError("Grid positions must be 20")
