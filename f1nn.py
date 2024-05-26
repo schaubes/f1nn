@@ -62,9 +62,7 @@ driver_data = {}
 for abbr in abbreviations:
     driver_sessions = session_data[session_data['Abbreviation'] == abbr]
     driver_finished = driver_sessions['Finished'].sum()
-    driver_ratio = driver_finished / len(driver_sessions)
-
-    driver_data[abbr] = driver_ratio
+    driver_data[abbr] = driver_finished / len(driver_sessions)
 
 print(driver_data)
 print()
@@ -178,8 +176,8 @@ class ResultPrediction:
 grid_file = open('grid.txt', 'r')
 grid_positions = [line[:-1] if line[-1] == '\n' else line for line in grid_file.readlines()]
 
-if len(grid_positions) != 20:
-    raise ValueError("Grid positions must be 20")
+# if len(grid_positions) != 20:
+#     raise ValueError("Grid positions must be 20")
 
 for i in range(0, len(grid_positions)):
     if grid_positions[i] not in abbreviations:
@@ -225,15 +223,15 @@ print()
 
 # Print predictions by finished
 
-print('Finishing predictions\n')
+# print('Finishing predictions\n')
 
-pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
+# pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
 
-for i in range(0, len(pred_results_finished_sorted)):
-    pred_result = pred_results_finished_sorted[i]
-    print(f"{pred_result.abbr} {pred_result.finished:>0.7f} ({pred_result.pos:>2d} -> {pred_result.pred:>0.7f})")
+# for i in range(0, len(pred_results_finished_sorted)):
+#     pred_result = pred_results_finished_sorted[i]
+#     print(f"{pred_result.abbr} {pred_result.finished:>0.7f} ({pred_result.pos:>2d} -> {pred_result.pred:>0.7f})")
 
-print()
+# print()
 
 # Print finishing analysis
 
