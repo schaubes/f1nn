@@ -33,7 +33,7 @@ print()
 print(session_data.head())
 
 
-numeric_feature_names = ['GridPosition']
+numeric_feature_names = ['GridPosition', 'Recency']
 binary_feature_names = ['Finished']
 categorical_feature_names = ['Abbreviation']
 
@@ -75,12 +75,13 @@ for index, row in session_data.iterrows():
     preprocessed_row = np.zeros(32, dtype=np.float32)
 
     preprocessed_row[0] = row['GridPosition']
-    #preprocessed_row[1] = row['Finished']
-    preprocessed_row[1] = driver_data[row['Abbreviation']]
+    # preprocessed_row[1] = row['Finished']
+    preprocessed_row[1] = row['Recency']
+    preprocessed_row[2] = driver_data[row['Abbreviation']]
 
     if (row['Abbreviation'] in abbreviations):
         abbr_index = np.where(abbreviations == row['Abbreviation'])[0][0]
-        preprocessed_row[2 + abbr_index] = 1
+        preprocessed_row[3 + abbr_index] = 1
 
     preprocessed_features.append(preprocessed_row.tolist())
 
@@ -155,8 +156,9 @@ print('Testing complete')
 print('\n\n-- PREDICTION --\n')
 
 class ResultPrediction:
-    def __init__(self, start_pos, abbr, finishing_ratio, pred=0):
+    def __init__(self, start_pos, recency, abbr, finishing_ratio, pred=0):
         self.start_pos = start_pos
+        self.recency = recency
         self.abbr = abbr
         self.finishing_ratio = finishing_ratio
         self.pred = pred
@@ -190,17 +192,19 @@ for i in range(0, len(grid_positions)):
     preprocessed_row = np.zeros(32, dtype=np.float32)
 
     start_pos = i + 1
+    recency = 1.0
     abbr = grid_positions[i]
     abbr_index = np.where(abbreviations == abbr)[0][0]
     # finished = 1
 
-    preprocessed_row[0] = start_pos
+    preprocessed_row[0] = start_pos # Start position
     # preprocessed_row[1] = finished
-    preprocessed_row[1] = driver_data[abbr]
-    preprocessed_row[2 + abbr_index] = 1
+    preprocessed_row[1] = recency # Recency
+    preprocessed_row[2] = driver_data[abbr]
+    preprocessed_row[3 + abbr_index] = 1 # Abbreviation
 
     pred_inputs.append(preprocessed_row.tolist())
-    pred_results.append(ResultPrediction(start_pos, abbr, driver_data[abbr]))
+    pred_results.append(ResultPrediction(start_pos, recency, abbr, driver_data[abbr]))
 
 pred_outputs = model.predict(nn, pred_inputs)
 

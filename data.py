@@ -45,7 +45,8 @@ def get_sessions(year):
     sessions = []
 
     for i in range(0, num_sessions):
-        session = get_session(year, i+1, 'R')
+        session = get_session(year, i + 1, 'R')
+        session['Recency'] = i / num_sessions
         sessions.append(session)
 
     return sessions
