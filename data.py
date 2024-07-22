@@ -82,3 +82,11 @@ def get_filtered_session_results(session_results):
     session_data.dropna(inplace=True)
     
     return session_data
+
+
+def save(data, path):
+    data.to_csv(path, index=True)
+
+
+def load(path):
+    return pd.read_csv(path, index_col=0)

@@ -10,7 +10,7 @@ device = (
     if torch.backends.mps.is_available()
     else "cpu"
 )
-print(f"Using {device} device")
+#print(f"Using {device} device")
 
 
 # [ 1 grid_position, 1 finished, 30 [driver 1-to-k] ]
@@ -129,18 +129,16 @@ def eval(model):
 
 
 def save(model, optimizer, path):
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }, path)
+    torch.save(model.state_dict(), path)
     print(f"Saved PyTorch Model State to {path}")
 
 
-def load(model, optimizer, path):
-    checkpoint = torch.load(path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+def load(path):
+    model = NeuralNetwork(32, 2)
+    model.load_state_dict(torch.load(path))
+    model.eval()
     print(f"Loaded PyTorch Model State from {path}")
+    return model
 
 
 def predict(model, input):

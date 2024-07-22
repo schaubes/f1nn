@@ -1,2 +1,4 @@
 __pycache__/
 grid.txt
+session_data.csv
+model.pth

@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import data as f1
 
@@ -15,237 +16,303 @@ print('----------')
 
 # INPUT
 
-print('\n\n-- INPUT --\n')
+#print('\n\n-- INPUT --\n')
+
+parser = argparse.ArgumentParser()
+parser.add_argument("mode")
+args = parser.parse_args()
+
+mode = args.mode
+
+
+# MODEL
 
 framework = 'torch'
-
 if framework == 'tf':
     import model_tf as model
 else:
     import model_torch as model
 
 
-print()
-sessions = f1.get_sessions_since(2023)
-session_data = f1.get_filtered_session_results(sessions)
-print()
+# HELPER FUNCTIONS
 
-print(session_data.head())
+def get_driver_data(session_data):
+    abbreviations = session_data['Abbreviation'].unique()
+    abbreviations.sort()
 
+    driver_data = {}
 
-numeric_feature_names = ['GridPosition', 'Recency']
-binary_feature_names = ['Finished']
-categorical_feature_names = ['Abbreviation']
+    for abbr in abbreviations:
+        driver_sessions = session_data[session_data['Abbreviation'] == abbr]
+        driver_finished = driver_sessions['Finished'].sum()
+        driver_data[abbr] = driver_finished / len(driver_sessions)
 
-target_names = ['Position', 'Finished']
+    return driver_data, abbreviations
 
 
-# PREPROCESSING
+# DATA MODE
 
-print('\n\n-- PREPROCESSING --\n')
+def data_mode():
+    sessions = f1.get_sessions_since(2023)
+    session_data = f1.get_filtered_session_results(sessions)
+    print()
+    print(session_data.head())
+    f1.save(session_data, 'session_data.csv')
+    print()
+    print('Data saved')
 
-preprocessed_features = []
-preprocessed_targets = []
 
-abbreviations = session_data['Abbreviation'].unique()
-abbreviations.sort()
+# TRAINING MODE
 
-print('Unique drivers:', len(abbreviations), abbreviations)
-print()
+def train_mode():
+    session_data = f1.load('session_data.csv')
 
-# Analyze drivers
+    if session_data is None:
+        print('No session data found. Run data mode first.')
+        exit(1)
 
-print('Driver data\n')
+    numeric_feature_names = ['GridPosition', 'Recency']
+    binary_feature_names = ['Finished']
+    categorical_feature_names = ['Abbreviation']
 
-driver_data = {}
+    target_names = ['Position', 'Finished']
 
-for abbr in abbreviations:
-    driver_sessions = session_data[session_data['Abbreviation'] == abbr]
-    driver_finished = driver_sessions['Finished'].sum()
-    driver_data[abbr] = driver_finished / len(driver_sessions)
 
-print(driver_data)
-print()
+    # PREPROCESSING
 
-# Preprocess features
+    print('\n\n-- PREPROCESSING --\n')
 
-print('Feature example\n')
+    preprocessed_features = []
+    preprocessed_targets = []
 
-for index, row in session_data.iterrows():
-    preprocessed_row = np.zeros(32, dtype=np.float32)
+    driver_data, abbreviations = get_driver_data(session_data)
 
-    preprocessed_row[0] = row['GridPosition']
-    # preprocessed_row[1] = row['Finished']
-    preprocessed_row[1] = row['Recency']
-    preprocessed_row[2] = driver_data[row['Abbreviation']]
+    # Preprocess features
 
-    if (row['Abbreviation'] in abbreviations):
-        abbr_index = np.where(abbreviations == row['Abbreviation'])[0][0]
-        preprocessed_row[3 + abbr_index] = 1
+    print('Feature example\n')
 
-    preprocessed_features.append(preprocessed_row.tolist())
+    for index, row in session_data.iterrows():
+        preprocessed_row = np.zeros(32, dtype=np.float32)
 
-print(preprocessed_features[0])
-print()
+        preprocessed_row[0] = row['GridPosition']
+        # preprocessed_row[1] = row['Finished']
+        preprocessed_row[1] = row['Recency']
+        preprocessed_row[2] = driver_data[row['Abbreviation']]
 
-# Preprocess targets
+        if (row['Abbreviation'] in abbreviations):
+            abbr_index = np.where(abbreviations == row['Abbreviation'])[0][0]
+            preprocessed_row[3 + abbr_index] = 1
 
-print('Target example\n')
+        preprocessed_features.append(preprocessed_row.tolist())
 
-for index, row in session_data.iterrows():
-    preprocessed_row = np.zeros(2, dtype=np.float32)
+    print(preprocessed_features[0])
+    print()
 
-    preprocessed_row[0] = row['Position']
-    preprocessed_row[1] = row['Finished']
+    # Preprocess targets
 
-    preprocessed_targets.append(preprocessed_row.tolist())
+    print('Target example\n')
 
-print(preprocessed_targets[0])
-print()
+    for index, row in session_data.iterrows():
+        preprocessed_row = np.zeros(2, dtype=np.float32)
 
+        preprocessed_row[0] = row['Position']
+        preprocessed_row[1] = row['Finished']
 
-# Split data
+        preprocessed_targets.append(preprocessed_row.tolist())
 
-train_data, test_data = model.get_data(preprocessed_features, preprocessed_targets, train_test_split=TRAIN_TEST_SPLIT, batch_size=BATCH_SIZE)
+    print(preprocessed_targets[0])
+    print()
 
 
-# MODEL
+    # Split data
 
-print('\n\n-- MODEL --\n')
+    train_data, test_data = model.get_data(preprocessed_features, preprocessed_targets, train_test_split=TRAIN_TEST_SPLIT, batch_size=BATCH_SIZE)
 
-feature_length = len(preprocessed_features[0])
-target_length = len(preprocessed_targets[0])
 
-nn, loss_fn, optimizer = model.get_model(feature_length, target_length)
+    # MODEL
 
-nn.print()
-print()
+    print('\n\n-- MODEL --\n')
 
-print('Model created')
+    feature_length = len(preprocessed_features[0])
+    target_length = len(preprocessed_targets[0])
 
+    nn, loss_fn, optimizer = model.get_model(feature_length, target_length)
 
-# TRAINING
+    nn.print()
+    print()
 
-print('\n\n-- TRAINING --\n')
+    print('Model created')
 
-model.train(train_data, nn, loss_fn, optimizer, epochs=EPOCHS)
 
-print('Training complete')
+    # TRAINING
 
+    print('\n\n-- TRAINING --\n')
 
-# EVALUATION
+    model.train(train_data, nn, loss_fn, optimizer, epochs=EPOCHS)
 
-print('\n\n-- EVALUATION --\n')
+    print('Training complete')
 
-model.eval(nn)
 
-print('Evaluation complete')
+    # EVALUATION
 
+    print('\n\n-- EVALUATION --\n')
 
-# TESTING
+    model.eval(nn)
 
-print('\n\n-- TESTING --\n')
+    print('Evaluation complete')
 
-model.test(test_data, nn, loss_fn)
 
-print('Testing complete')
+    # TESTING
 
+    print('\n\n-- TESTING --\n')
 
-# PREDICTION
+    model.test(test_data, nn, loss_fn)
 
-print('\n\n-- PREDICTION --\n')
+    print('Testing complete')
 
-class ResultPrediction:
-    def __init__(self, start_pos, recency, abbr, finishing_ratio, pred=0):
-        self.start_pos = start_pos
-        self.recency = recency
-        self.abbr = abbr
-        self.finishing_ratio = finishing_ratio
-        self.pred = pred
-        self.finished = 0
-        self.pos = 0
-    
-    def setPrediction(self, pred):
-        self.pred = pred
+    # SAVE MODEL
 
-    def setFinished(self, finished):
-        self.finished = finished
+    print('\n\n-- SAVING --\n')
 
-    def setPosition(self, pos):
-        self.pos = pos
+    model.save(nn, optimizer, 'model.pth')
 
-#grid_positions = sessions[0]['Abbreviation'].unique()
-grid_file = open('grid.txt', 'r')
-grid_positions = [line[:-1] if line[-1] == '\n' else line for line in grid_file.readlines()]
 
-# if len(grid_positions) != 20:
-#     raise ValueError("Grid positions must be 20")
+# PREDICTION MODE
 
-for i in range(0, len(grid_positions)):
-    if grid_positions[i] not in abbreviations:
-        raise ValueError(f"Grid position {grid_positions[i]} not found in abbreviations")
+def predict_mode():
+    session_data = f1.load('session_data.csv')
 
-pred_inputs = []
-pred_results = []
+    if session_data is None:
+        print('No session data found. Run data mode first.')
+        exit(1)
 
-for i in range(0, len(grid_positions)):
-    preprocessed_row = np.zeros(32, dtype=np.float32)
+    nn = model.load('model.pth')
 
-    start_pos = i + 1
-    recency = 1.0
-    abbr = grid_positions[i]
-    abbr_index = np.where(abbreviations == abbr)[0][0]
-    # finished = 1
+    if nn is None:
+        print('No model found. Run training mode first.')
+        exit(1)
 
-    preprocessed_row[0] = start_pos # Start position
-    # preprocessed_row[1] = finished
-    preprocessed_row[1] = recency # Recency
-    preprocessed_row[2] = driver_data[abbr]
-    preprocessed_row[3 + abbr_index] = 1 # Abbreviation
+    driver_data, abbreviations = get_driver_data(session_data)
 
-    pred_inputs.append(preprocessed_row.tolist())
-    pred_results.append(ResultPrediction(start_pos, recency, abbr, driver_data[abbr]))
 
-pred_outputs = model.predict(nn, pred_inputs)
+    # PREDICTION
 
-for i in range(0, len(pred_outputs)):
-    pred_results[i].setPrediction(pred_outputs[i, 0].item())
-    pred_results[i].setFinished(pred_outputs[i, 1].item())
+    class ResultPrediction:
+        def __init__(self, start_pos, recency, abbr, finishing_ratio, pred=0):
+            self.start_pos = start_pos
+            self.recency = recency
+            self.abbr = abbr
+            self.finishing_ratio = finishing_ratio
+            self.pred = pred
+            self.finished = 0
+            self.pos = 0
+        
+        def setPrediction(self, pred):
+            self.pred = pred
 
-# Print predictions by position
+        def setFinished(self, finished):
+            self.finished = finished
 
-print('Race predictions\n')
+        def setPosition(self, pos):
+            self.pos = pos
 
-pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
+    #grid_positions = sessions[0]['Abbreviation'].unique()
+    grid_file = open('grid.txt', 'r')
+    grid_positions = [line[:-1] if line[-1] == '\n' else line for line in grid_file.readlines()]
 
-for i in range(0, len(pred_results_sorted)):
-    pred_result = pred_results_sorted[i]
-    pred_result.setPosition(i+1)
-    print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f}, {pred_result.finished:>0.7f})")
+    # if len(grid_positions) != 20:
+    #     raise ValueError("Grid positions must be 20")
 
-print()
+    for i in range(0, len(grid_positions)):
+        if grid_positions[i] not in abbreviations:
+            raise ValueError(f"Grid position {grid_positions[i]} not found in abbreviations")
 
-# Print predictions by finished
+    pred_inputs = []
+    pred_results = []
 
-# print('Finishing predictions\n')
+    for i in range(0, len(grid_positions)):
+        preprocessed_row = np.zeros(32, dtype=np.float32)
 
-# pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
+        start_pos = i + 1
+        recency = 1.0
+        abbr = grid_positions[i]
+        abbr_index = np.where(abbreviations == abbr)[0][0]
+        # finished = 1
 
-# for i in range(0, len(pred_results_finished_sorted)):
-#     pred_result = pred_results_finished_sorted[i]
-#     print(f"{pred_result.abbr} {pred_result.finished:>0.7f} ({pred_result.pos:>2d} -> {pred_result.pred:>0.7f})")
+        preprocessed_row[0] = start_pos # Start position
+        # preprocessed_row[1] = finished
+        preprocessed_row[1] = recency # Recency
+        preprocessed_row[2] = driver_data[abbr]
+        preprocessed_row[3 + abbr_index] = 1 # Abbreviation
 
-# print()
+        pred_inputs.append(preprocessed_row.tolist())
+        pred_results.append(ResultPrediction(start_pos, recency, abbr, driver_data[abbr]))
 
-# Print finishing analysis
+    pred_outputs = model.predict(nn, pred_inputs)
 
-print('Finishing analysis\n')
+    for i in range(0, len(pred_outputs)):
+        pred_results[i].setPrediction(pred_outputs[i, 0].item())
+        pred_results[i].setFinished(pred_outputs[i, 1].item())
 
-driver_data_sorted = {k: v for k, v in sorted(driver_data.items(), key=lambda item: item[1])}
+    # Print predictions by position
 
-for abbr, ratio in driver_data_sorted.items():
-    pred_result = next((x for x in pred_results if x.abbr == abbr), None)
-    if pred_result is None:
-        continue
+    print('\nRace predictions\n')
 
-    print(f"{pred_result.abbr} {ratio:>0.2f}")
+    pred_results_sorted = sorted(pred_results, key=lambda x: x.pred)
+
+    for i in range(0, len(pred_results_sorted)):
+        pred_result = pred_results_sorted[i]
+        pred_result.setPosition(i+1)
+        print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f}, {pred_result.finished:>0.7f})")
+
+    print()
+
+    # Print predictions by finished
+
+    # print('Finishing predictions\n')
+
+    # pred_results_finished_sorted = sorted(pred_results, key=lambda x: x.finished)
+
+    # for i in range(0, len(pred_results_finished_sorted)):
+    #     pred_result = pred_results_finished_sorted[i]
+    #     print(f"{pred_result.abbr} {pred_result.finished:>0.7f} ({pred_result.pos:>2d} -> {pred_result.pred:>0.7f})")
+
+    # print()
+
+    # Print finishing analysis
+
+    print('Finishing analysis\n')
+
+    driver_data_sorted = {k: v for k, v in sorted(driver_data.items(), key=lambda item: item[1])}
+
+    for abbr, ratio in driver_data_sorted.items():
+        pred_result = next((x for x in pred_results if x.abbr == abbr), None)
+        if pred_result is None:
+            continue
+
+        print(f"{pred_result.abbr} {ratio:>0.2f}")
+
+
+# MODE
+
+if mode == 'all':
+    print('\n\n-- DATA MODE --\n')
+    data_mode()
+    print('\n\n-- TRAINING MODE --\n')
+    train_mode()
+    print('\n\n-- PREDICTION MODE --\n')
+    predict_mode()
+    exit(0)
+elif mode == 'data':
+    print('\n\n-- DATA MODE --\n')
+    data_mode()
+    exit(0)
+elif mode == 'train':
+    print('\n\n-- TRAINING MODE --\n')
+    train_mode()
+elif mode == 'predict':
+    print('\n\n-- PREDICTION MODE --\n')
+    predict_mode()
+else:
+    print('\nInvalid mode: ' + mode)
+    exit(1)
