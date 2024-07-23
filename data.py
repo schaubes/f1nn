@@ -1,6 +1,7 @@
+import os
+import datetime
 import fastf1 as f1
 import pandas as pd
-import datetime
 
 
 def get_session(year, round, session_type):
@@ -85,6 +86,8 @@ def get_filtered_session_results(session_results):
 
 
 def save(data, path):
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
     data.to_csv(path, index=True)
 
 

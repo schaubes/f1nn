@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
@@ -129,13 +130,14 @@ def eval(model):
 
 
 def save(model, optimizer, path):
-    torch.save(model.state_dict(), path)
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    torch.save(model, path)
     print(f"Saved PyTorch Model State to {path}")
 
 
 def load(path):
-    model = NeuralNetwork(32, 2)
-    model.load_state_dict(torch.load(path))
+    model = torch.load(path)
     model.eval()
     print(f"Loaded PyTorch Model State from {path}")
     return model

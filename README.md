@@ -11,4 +11,4 @@ These packages are required:
 - fastf1
 - pandas
 
-You can then choose which nn library you want to use.
+For now, only pytorch is implemented. In the future, you should be able to choose which nn library you want to use.

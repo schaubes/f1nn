@@ -57,7 +57,7 @@ def data_mode():
     session_data = f1.get_filtered_session_results(sessions)
     print()
     print(session_data.head())
-    f1.save(session_data, 'session_data.csv')
+    f1.save(session_data, 'data/session_data.csv')
     print()
     print('Data saved')
 
@@ -65,7 +65,7 @@ def data_mode():
 # TRAINING MODE
 
 def train_mode():
-    session_data = f1.load('session_data.csv')
+    session_data = f1.load('data/session_data.csv')
 
     if session_data is None:
         print('No session data found. Run data mode first.')
@@ -174,19 +174,19 @@ def train_mode():
 
     print('\n\n-- SAVING --\n')
 
-    model.save(nn, optimizer, 'model.pth')
+    model.save(nn, optimizer, 'data/model.pth')
 
 
 # PREDICTION MODE
 
 def predict_mode():
-    session_data = f1.load('session_data.csv')
+    session_data = f1.load('data/session_data.csv')
 
     if session_data is None:
         print('No session data found. Run data mode first.')
         exit(1)
 
-    nn = model.load('model.pth')
+    nn = model.load('data/model.pth')
 
     if nn is None:
         print('No model found. Run training mode first.')
@@ -302,11 +302,14 @@ if mode == 'all':
     train_mode()
     print('\n\n-- PREDICTION MODE --\n')
     predict_mode()
-    exit(0)
+elif mode == 'main':
+    print('\n\n-- TRAINING MODE --\n')
+    train_mode()
+    print('\n\n-- PREDICTION MODE --\n')
+    predict_mode()
 elif mode == 'data':
     print('\n\n-- DATA MODE --\n')
     data_mode()
-    exit(0)
 elif mode == 'train':
     print('\n\n-- TRAINING MODE --\n')
     train_mode()
@@ -316,3 +319,5 @@ elif mode == 'predict':
 else:
     print('\nInvalid mode: ' + mode)
     exit(1)
+
+exit(0)
