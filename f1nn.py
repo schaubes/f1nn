@@ -263,7 +263,8 @@ def predict_mode():
     for i in range(0, len(pred_results_sorted)):
         pred_result = pred_results_sorted[i]
         pred_result.setPosition(i+1)
-        print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f}, {pred_result.finished:>0.7f})")
+        print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f})")
+        #print(f"{pred_result.abbr} {pred_result.start_pos:>2d} -> {pred_result.pos:>2d} ({pred_result.pred:>0.7f}, {pred_result.finished:>0.7f})")
 
     print()
 
@@ -313,7 +314,7 @@ elif mode == 'data':
 elif mode == 'train':
     print('\n\n-- TRAINING MODE --\n')
     train_mode()
-elif mode == 'predict':
+elif mode == 'predict' or mode == 'pred':
     print('\n\n-- PREDICTION MODE --\n')
     predict_mode()
 else:
