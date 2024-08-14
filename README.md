@@ -66,4 +66,7 @@ This project is by far not done or in any way perfect. You can track the progres
 - [ ] Input: Track
 - [ ] Input: Weather
 
-Have fun with the project!
+
+### Notice
+
+This project is unofficial and is not associated in any way with the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One Licensing B.V.
